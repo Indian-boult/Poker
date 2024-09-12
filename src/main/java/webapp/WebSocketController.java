@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 @EnableScheduling
 @EnableAsync
 @Controller
-
 public class WebSocketController implements Observer {
     private final SimpMessageSendingOperations messagingTemplate;
     private final List<LobbyImpl> lobbies;
@@ -98,7 +97,6 @@ public class WebSocketController implements Observer {
     @MessageExceptionHandler
     public String handleException(Throwable exception) {
         System.out.println(exception.getMessage());
-        //messagingTemplate.convertAndSend("/errors", exception.getMessage());
         return exception.getMessage();
     }
 
@@ -107,18 +105,27 @@ public class WebSocketController implements Observer {
         System.out.println("login");
         String username = credentials[0];
         String password = credentials[1];
-        if (lobbies.get(0).getPlayerSet().stream().map(Player::getName).collect(Collectors.toSet()).contains(username)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (userRepository.login(username, password)) {
-            if (userRepository.getBalance(username) >= 250) {
-                lobbies.get(0).addPlayer(new Player(username, 250));
-                userRepository.withdraw(username, 250);
-            } else {
-                lobbies.get(0).addPlayer(new Player(username, 0));
+
+        // Handle the case where the userRepository might not be able to connect to DB
+        try {
+            if (lobbies.get(0).getPlayerSet().stream().map(Player::getName).collect(Collectors.toSet()).contains(username)) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            return new ResponseEntity<>(HttpStatus.OK);
+
+            if (userRepository.login(username, password)) {
+                if (userRepository.getBalance(username) >= 250) {
+                    lobbies.get(0).addPlayer(new Player(username, 250));
+                    userRepository.withdraw(username, 250);
+                } else {
+                    lobbies.get(0).addPlayer(new Player(username, 0));
+                }
+                return new ResponseEntity<>(HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            // Log and return an error if something goes wrong with login
+            System.out.println("Login failed: " + e.getMessage());
         }
+
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
@@ -136,6 +143,8 @@ public class WebSocketController implements Observer {
             System.out.println("registered");
         } catch (InvalidNameException e) {
             model.addAttribute("error", "Error: " + e.getMessage());
+        } catch (Exception e) {
+            model.addAttribute("error", "Registration failed: " + e.getMessage());
         }
         return "signUp";
     }
@@ -149,6 +158,8 @@ public class WebSocketController implements Observer {
             userRepository.deposit(toBeRemoved.getName(), toBeRemoved.getChips());
             lobbies.get(0).removePlayer(toBeRemoved);
         } catch (NoSuchElementException ignored) {
+        } catch (Exception e) {
+            System.out.println("Failed to process disconnect event: " + e.getMessage());
         }
         this.refreshAllPlayers();
     }

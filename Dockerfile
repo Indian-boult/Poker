@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y maven
 # Compile the project with Maven, run tests, and package it into a JAR file
 RUN mvn clean test package
 
-# Expose port 8080 (or the port your app is configured to use)
-EXPOSE 8080
+# Expose port 9090 (as defined in application.yml)
+EXPOSE 9090
 
 # Set the entry point to run the application JAR
-CMD ["java", "-jar", "target/poker-1.0-SNAPSHOT.jar"]
+CMD ["java", "-jar", "target/brampel-poker-0.1.0.jar"]

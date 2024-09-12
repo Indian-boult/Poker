@@ -32,6 +32,7 @@ public class UserRepository {
         }
     }
 
+    // Fetch all users from the database
     public List<User> allUsers() throws SQLException {
         ResultSet resultSet;
         Statement statement = DBConn.createStatement();
@@ -54,6 +55,7 @@ public class UserRepository {
         return users;
     }
 
+    // Add a user to the database
     public void addUser(User u) throws SQLException, InvalidNameException {
         for (User a : allUsers()) {
             if (a.getUsername().equals(u.getUsername())) throw new InvalidNameException("Username in use");
@@ -65,6 +67,7 @@ public class UserRepository {
         statement.executeUpdate(insertQuery);
     }
 
+    // Edit user information (mainly for balance)
     public void editUser(User u) throws SQLException {
         Statement statement = DBConn.createStatement();
         String insertQuery = "UPDATE `users`" +
@@ -73,6 +76,7 @@ public class UserRepository {
         statement.executeUpdate(insertQuery);
     }
 
+    // Fetch user based on username
     public User getUser(String username) {
         try {
             for (User a : allUsers()) {
@@ -84,28 +88,32 @@ public class UserRepository {
         return null;
     }
 
+    // Method to login user with username and password
     public boolean login(String username, String password) {
         User u = getUser(username);
         if (u == null) return false;
         return BCrypt.checkpw(password, new String(u.getPassword()));
     }
 
+    // Register a new user
     public void register(String username, String password) throws InvalidNameException {
         try {
             User u = new User(username, password);
-            u.setBalance(3500);
+            u.setBalance(3500); // Default balance for new users
             addUser(u);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
     }
 
+    // Fetch user balance
     public int getBalance(String username) {
         User u = getUser(username);
         if (u == null) return -1;
         return u.getBalance();
     }
 
+    // Withdraw a certain amount from the user's balance
     public void withdraw(String username, int amount) {
         User u = getUser(username);
         if (u == null || u.getBalance() < amount) return;
@@ -117,6 +125,7 @@ public class UserRepository {
         }
     }
 
+    // Deposit a certain amount to the user's balance
     public void deposit(String username, int amount) {
         User u = getUser(username);
         if (u == null) return;
