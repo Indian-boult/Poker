@@ -49,4 +49,6 @@ public interface Table extends Iterator<Player> {
 
     String getWinnerInfo();
 
+    String getPlayerPosition(Player player);
+
 }

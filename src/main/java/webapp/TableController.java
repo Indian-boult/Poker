@@ -65,6 +65,11 @@ public class TableController extends Observable {
         }
     }
 
+    public synchronized String getPlayerPosition(String playerName) {
+        Player player = table.getPlayerFromName(playerName);
+        return table.getPlayerPosition(player);
+    }
+
     private synchronized void ready() {
         setState(State.READY);
         while (turns.isEmpty()) {

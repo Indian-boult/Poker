@@ -263,4 +263,26 @@ public class TableImpl implements Table {
         });
         return results;
     }
+
+    @Override
+    public String getPlayerPosition(Player player) {
+        // The player at currentPlayerIndex is the Dealer.
+        Player dealer = players.get(currentPlayerIndex);
+        if (player.equals(dealer)) {
+            return "Dealer";
+        }
+
+        // Small blind and big blind typically follow the dealer.
+        Player smallBlind = players.get((currentPlayerIndex + 1) % players.size());
+        Player bigBlind = players.get((currentPlayerIndex + 2) % players.size());
+
+        if (player.equals(smallBlind)) {
+            return "Small Blind";
+        } else if (player.equals(bigBlind)) {
+            return "Big Blind";
+        }
+
+        // If the player is none of the above, they are just a "Player".
+        return "Player";
+    }
 }
